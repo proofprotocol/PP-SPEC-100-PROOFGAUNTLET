@@ -1,0 +1,205 @@
+{
+  "spec": "PP-SPEC-100",
+  "rubric": "PGR-0.1.0",
+  "description": "Conformance vectors for IP-G2 and IP-G3 (Section 12.3). Each vector gives a Gate result and Rating Inputs; a conforming implementation MUST produce exactly the expected output. Vectors A.1 to A.4 are the worked examples of SPEC.md Appendix A. Locators are placeholders; no vector describes a real product.",
+  "vectors": [
+    {
+      "id": "A.1-valid-strong",
+      "as_of": "2026-11-02T00:00:00Z",
+      "gate": { "record_kind": "full", "checks": { "G1": "pass", "G2": "pass", "G3": "pass", "G4": "pass", "G5": "pass", "G6": "pass", "G7": "pass", "G8": "pass", "G9": "pass" } },
+      "rating_inputs": {
+        "record_kind": "full",
+        "adjudicated_outcomes": true,
+        "control_evidence_independent": true,
+        "efficacy_rate_with_fbr": true,
+        "gold_claims_tested": true,
+        "novelty_share": 0.34,
+        "qualifying_techniques": 8,
+        "qualifying_tactics": 4,
+        "campaign_stages": 2,
+        "environment": { "class": "lab-replica", "basis": "parity_declaration", "any_absent": false, "mode": "independent_test_lab", "operating_mode": "bounded" },
+        "stream_degraded": null,
+        "witness_record": true,
+        "coverage_published": true,
+        "blind_void_share": 0.04,
+        "witness_calibration_current": true,
+        "boundary_capture_independent": true,
+        "party_independence": { "provider_in_seam": false, "issuer_witness_adjudicator_independent": true },
+        "reproof_status": { "status": "reproven", "scope": "instance", "count": 1, "umpire_ruling": null, "history": { "agree": 1, "diverge": 0, "insufficient": 0, "abandoned": 0, "lapsed": 0 } },
+        "anchor_time": "2026-10-27T00:00:00Z",
+        "historical": false
+      },
+      "expected": {
+        "gate_verdict": "valid",
+        "levels": { "D1_tier": 4, "D2_adversarial_depth": 3, "D3_environment_fidelity": 3, "D4_capture_fidelity": 4, "D5_independence": 3, "D6_freshness": 4 },
+        "raw_sum": 87.5,
+        "ceilings_applied": [],
+        "strength_rating": 88,
+        "strength_band": "strong",
+        "currency": "current"
+      }
+    },
+    {
+      "id": "A.2-valid-weak",
+      "as_of": "2026-11-02T00:00:00Z",
+      "gate": { "record_kind": "full", "checks": { "G1": "pass", "G2": "pass", "G3": "pass", "G4": "pass", "G5": "pass", "G6": "pass", "G7": "pass", "G8": "pass", "G9": "pass" } },
+      "rating_inputs": {
+        "record_kind": "full",
+        "adjudicated_outcomes": true,
+        "control_evidence_independent": true,
+        "efficacy_rate_with_fbr": true,
+        "gold_claims_tested": false,
+        "novelty_share": 0.0,
+        "qualifying_techniques": 1,
+        "qualifying_tactics": 1,
+        "campaign_stages": 1,
+        "environment": { "class": "dev", "basis": null, "any_absent": null, "mode": "in_situ", "operating_mode": "bounded" },
+        "stream_degraded": null,
+        "witness_record": true,
+        "coverage_published": false,
+        "blind_void_share": null,
+        "witness_calibration_current": null,
+        "boundary_capture_independent": false,
+        "party_independence": { "provider_in_seam": false, "issuer_witness_adjudicator_independent": false },
+        "reproof_status": { "status": "single", "scope": null, "count": 0, "umpire_ruling": null, "history": { "agree": 0, "diverge": 0, "insufficient": 0, "abandoned": 0, "lapsed": 0 } },
+        "anchor_time": "2026-01-06T00:00:00Z",
+        "historical": false
+      },
+      "expected": {
+        "gate_verdict": "valid",
+        "levels": { "D1_tier": 2, "D2_adversarial_depth": 1, "D3_environment_fidelity": 1, "D4_capture_fidelity": 1, "D5_independence": 1, "D6_freshness": 1 },
+        "raw_sum": 31.25,
+        "ceilings_applied": [],
+        "strength_rating": 31,
+        "strength_band": "weak",
+        "currency": "current"
+      }
+    },
+    {
+      "id": "A.3-invalid-commitment-after-ingress",
+      "as_of": "2026-11-02T00:00:00Z",
+      "gate": {
+        "record_kind": "full",
+        "checks": { "G1": "pass", "G2": "pass", "G3": "pass", "G4": "pass", "G5": "pass", "G6": "pass", "G7": "fail", "G8": "pass", "G9": "pass" },
+        "evidence": { "G7": "Commitment Time Anchor pulse is 240 seconds after the first ingress record" }
+      },
+      "rating_inputs": null,
+      "expected": {
+        "gate_verdict": "invalid",
+        "levels": null,
+        "strength_rating": null,
+        "strength_band": null
+      }
+    },
+    {
+      "id": "A.4-legacy-proofregister",
+      "as_of": "2026-11-02T00:00:00Z",
+      "locator": { "registry_id": "proofregister.com", "record_id": "PR-2026-NNNNN" },
+      "gate": { "record_kind": "legacy", "checks": { "G1": "pass", "G2": "pass", "G3": "pass", "G4": "pass", "G5": "not_applicable", "G6": "not_applicable", "G7": "not_applicable", "G8": "not_applicable", "G9": "not_applicable" } },
+      "rating_inputs": {
+        "record_kind": "legacy",
+        "adjudicated_outcomes": null,
+        "control_evidence_independent": null,
+        "efficacy_rate_with_fbr": null,
+        "gold_claims_tested": null,
+        "novelty_share": null,
+        "qualifying_techniques": null,
+        "qualifying_tactics": null,
+        "campaign_stages": null,
+        "environment": null,
+        "stream_degraded": null,
+        "witness_record": null,
+        "coverage_published": null,
+        "blind_void_share": null,
+        "witness_calibration_current": null,
+        "boundary_capture_independent": null,
+        "party_independence": null,
+        "reproof_status": null,
+        "anchor_time": "2026-10-13T00:00:00Z",
+        "historical": false,
+        "null_reasons": { "default": "not_in_record" }
+      },
+      "expected": {
+        "gate_verdict": "valid_legacy",
+        "levels": { "D1_tier": 0, "D2_adversarial_depth": 0, "D3_environment_fidelity": 0, "D4_capture_fidelity": 0, "D5_independence": 0, "D6_freshness": 4 },
+        "raw_sum": 10,
+        "ceilings_applied": ["K1", "K3"],
+        "strength_rating": 10,
+        "strength_band": "weak",
+        "currency": "current"
+      }
+    },
+    {
+      "id": "B.1-ceiling-divergent",
+      "as_of": "2026-11-02T00:00:00Z",
+      "gate": { "record_kind": "full", "checks": { "G1": "pass", "G2": "pass", "G3": "pass", "G4": "pass", "G5": "pass", "G6": "pass", "G7": "pass", "G8": "pass", "G9": "pass" } },
+      "rating_inputs": {
+        "record_kind": "full",
+        "adjudicated_outcomes": true,
+        "control_evidence_independent": true,
+        "efficacy_rate_with_fbr": true,
+        "gold_claims_tested": true,
+        "novelty_share": 0.30,
+        "qualifying_techniques": 14,
+        "qualifying_tactics": 5,
+        "campaign_stages": 4,
+        "environment": { "class": "production", "basis": null, "any_absent": null, "mode": "in_situ", "operating_mode": "bounded" },
+        "stream_degraded": null,
+        "witness_record": true,
+        "coverage_published": true,
+        "blind_void_share": 0.03,
+        "witness_calibration_current": true,
+        "boundary_capture_independent": true,
+        "party_independence": { "provider_in_seam": false, "issuer_witness_adjudicator_independent": true },
+        "reproof_status": { "status": "divergent", "scope": "instance", "count": 0, "umpire_ruling": null, "history": { "agree": 0, "diverge": 1, "insufficient": 0, "abandoned": 0, "lapsed": 0 } },
+        "anchor_time": "2026-10-20T00:00:00Z",
+        "historical": false
+      },
+      "expected": {
+        "gate_verdict": "valid",
+        "levels": { "D1_tier": 4, "D2_adversarial_depth": 4, "D3_environment_fidelity": 4, "D4_capture_fidelity": 4, "D5_independence": 2, "D6_freshness": 4 },
+        "raw_sum": 92.5,
+        "ceilings_applied": ["K2"],
+        "strength_rating": 50,
+        "strength_band": "moderate",
+        "currency": "current"
+      }
+    },
+    {
+      "id": "B.2-ceiling-control-only",
+      "as_of": "2026-11-02T00:00:00Z",
+      "gate": { "record_kind": "full", "checks": { "G1": "pass", "G2": "pass", "G3": "pass", "G4": "pass", "G5": "pass", "G6": "pass", "G7": "pass", "G8": "pass", "G9": "pass" } },
+      "rating_inputs": {
+        "record_kind": "full",
+        "adjudicated_outcomes": false,
+        "control_evidence_independent": true,
+        "efficacy_rate_with_fbr": false,
+        "gold_claims_tested": false,
+        "novelty_share": null,
+        "qualifying_techniques": 0,
+        "qualifying_tactics": 0,
+        "campaign_stages": 0,
+        "environment": { "class": "production", "basis": null, "any_absent": null, "mode": "in_situ", "operating_mode": "bounded" },
+        "stream_degraded": null,
+        "witness_record": true,
+        "coverage_published": true,
+        "blind_void_share": 0.05,
+        "witness_calibration_current": true,
+        "boundary_capture_independent": true,
+        "party_independence": { "provider_in_seam": false, "issuer_witness_adjudicator_independent": true },
+        "reproof_status": { "status": "reproven", "scope": "instance", "count": 2, "umpire_ruling": null, "history": { "agree": 2, "diverge": 0, "insufficient": 0, "abandoned": 0, "lapsed": 0 } },
+        "anchor_time": "2026-10-30T00:00:00Z",
+        "historical": false
+      },
+      "expected": {
+        "gate_verdict": "valid",
+        "levels": { "D1_tier": 1, "D2_adversarial_depth": 0, "D3_environment_fidelity": 4, "D4_capture_fidelity": 4, "D5_independence": 4, "D6_freshness": 4 },
+        "raw_sum": 61.25,
+        "ceilings_applied": ["K1"],
+        "strength_rating": 40,
+        "strength_band": "moderate",
+        "currency": "current"
+      }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "rubric": "PGR-0.1.0",
+  "spec": "PP-SPEC-100",
+  "spec_version": "0.1.0",
+  "published": "2026-11-02",
+  "immutable": true,
+  "rounding": "round_half_up",
+  "score_formula": "min(round_half_up(sum(weight[d] * level[d] / 4)), applicable_ceilings)",
+  "unknown_input_level": 0,
+  "parameters": {
+    "min_uop_per_technique": 5,
+    "novelty_share_min": 0.25,
+    "blind_void_share_max": 0.10,
+    "campaign_stages_min": 3,
+    "depth_l4_min_tactics": 3
+  },
+  "weights": {
+    "D1_tier": 25,
+    "D2_adversarial_depth": 20,
+    "D3_environment_fidelity": 15,
+    "D4_capture_fidelity": 15,
+    "D5_independence": 15,
+    "D6_freshness": 10
+  },
+  "dimensions": {
+    "D1_tier": {
+      "section": "7.3.1",
+      "levels": [
+        { "level": 0, "rule": "otherwise", "label": "Verification evidence only" },
+        { "level": 1, "rule": "control_evidence_independent == true && adjudicated_outcomes == false", "label": "Proof of Control" },
+        { "level": 2, "rule": "adjudicated_outcomes == true && efficacy_rate_with_fbr == true", "label": "Proof of Efficacy" },
+        { "level": 3, "rule": "level(2) && gold_claims_tested == true", "label": "Efficacy, claims tested" },
+        { "level": 4, "rule": "level(3) && novelty_share >= novelty_share_min", "label": "Efficacy, claims tested, novel variants" }
+      ]
+    },
+    "D2_adversarial_depth": {
+      "section": "7.3.2",
+      "levels": [
+        { "level": 0, "rule": "qualifying_techniques == 0", "label": "No qualifying technique" },
+        { "level": 1, "rule": "qualifying_techniques == 1", "label": "Single technique" },
+        { "level": 2, "rule": "qualifying_techniques >= 2 && qualifying_techniques <= 4", "label": "2 to 4 techniques" },
+        { "level": 3, "rule": "(qualifying_techniques >= 5 && qualifying_techniques <= 11) || campaign_stages >= campaign_stages_min", "label": "5 to 11 techniques, or multi-stage campaign" },
+        { "level": 4, "rule": "qualifying_techniques >= 12 && qualifying_tactics >= depth_l4_min_tactics", "label": "12 or more techniques across 3 or more tactics" }
+      ]
+    },
+    "D3_environment_fidelity": {
+      "section": "7.3.3",
+      "levels": [
+        { "level": 0, "rule": "environment.class == 'undeclared' || environment.mode == 'provider_run'", "label": "Undeclared or Provider-run" },
+        { "level": 1, "rule": "environment.class == 'dev' || (environment.class == 'lab-replica' && environment.basis == 'reference_environment')", "label": "Dev, or generic reference lab" },
+        { "level": 2, "rule": "environment.class == 'qa' || (environment.class == 'lab-replica' && environment.basis == 'parity_declaration' && environment.any_absent == true)", "label": "QA, or partial replica" },
+        { "level": 3, "rule": "environment.class == 'pre-production' || (environment.class == 'lab-replica' && environment.basis == 'parity_declaration' && environment.any_absent == false)", "label": "Pre-production, or customer-like replica" },
+        { "level": 4, "rule": "(environment.class == 'production' && environment.mode == 'in_situ') || (environment.operating_mode == 'production_stream' && stream_degraded == false)", "label": "Production" }
+      ]
+    },
+    "D4_capture_fidelity": {
+      "section": "7.3.4",
+      "levels": [
+        { "level": 0, "rule": "witness_record == false", "label": "No independent witness record" },
+        { "level": 1, "rule": "witness_record == true && coverage_published == false", "label": "Witness, no coverage map" },
+        { "level": 2, "rule": "coverage_published == true", "label": "Coverage map and absence shares published" },
+        { "level": 3, "rule": "level(2) && blind_void_share <= blind_void_share_max && witness_calibration_current == true", "label": "Low absence, calibrated witness" },
+        { "level": 4, "rule": "level(3) && boundary_capture_independent == true", "label": "Independent capture at the boundary" }
+      ]
+    },
+    "D5_independence": {
+      "section": "7.3.5",
+      "levels": [
+        { "level": 0, "rule": "otherwise", "label": "Provider in a seam, or not determinable" },
+        { "level": 1, "rule": "party_independence.provider_in_seam == false && party_independence.issuer_witness_adjudicator_independent == false", "label": "Provider out, roles overlap" },
+        { "level": 2, "rule": "party_independence.provider_in_seam == false && party_independence.issuer_witness_adjudicator_independent == true", "label": "Independent parties" },
+        { "level": 3, "rule": "level(2) && reproof_status.status == 'reproven' && reproof_status.count == 1", "label": "Reproven once" },
+        { "level": 4, "rule": "level(2) && ((reproof_status.status == 'reproven' && reproof_status.count >= 2) || reproof_status.umpire_ruling == 'head_upheld')", "label": "Reproven by two or more, or upheld by umpire" }
+      ]
+    },
+    "D6_freshness": {
+      "section": "7.3.6",
+      "age": "as_of - anchor_time",
+      "levels": [
+        { "level": 0, "rule": "age_days > 365 || historical == true", "label": "Older than a year, or historical" },
+        { "level": 1, "rule": "age_days <= 365 && historical == false", "label": "Within a year" },
+        { "level": 2, "rule": "age_days <= 180 && historical == false", "label": "Within 180 days" },
+        { "level": 3, "rule": "age_days <= 90 && historical == false", "label": "Within 90 days" },
+        { "level": 4, "rule": "age_days <= 30 && historical == false", "label": "Within 30 days" }
+      ]
+    }
+  },
+  "ceilings": [
+    { "id": "K1", "rule": "level('D1_tier') <= 1", "max": 40, "reason": "Without proof of efficacy, a record cannot be strong" },
+    { "id": "K2", "rule": "reproof_status.status in ['divergent', 'disputed', 'not_upheld']", "max": 50, "reason": "Independent reproduction did not agree" },
+    { "id": "K3", "rule": "gate_verdict == 'valid_legacy'", "max": 40, "reason": "Legacy record lacks PP-SPEC-077 Section 21 fields" }
+  ],
+  "bands": [
+    { "band": "weak", "min": 0, "max": 39 },
+    { "band": "moderate", "min": 40, "max": 69 },
+    { "band": "strong", "min": 70, "max": 89 },
+    { "band": "extremely_strong", "min": 90, "max": 100 }
+  ],
+  "level_rule_semantics": "For each dimension the level is the highest level whose rule evaluates true. level(n) means the conditions of level n of the same dimension hold. 'otherwise' applies when no higher level holds. Any comparison against a null input is false."
+}

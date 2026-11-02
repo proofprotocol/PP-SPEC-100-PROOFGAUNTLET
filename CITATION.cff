@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use or reference this work, cite it as below and attribute Craig Thomas Ellrod and Proof Protocol (see NOTICE.md)."
+title: "ProofGauntlet: The Proof Strength Protocol (PP-SPEC-100)"
+version: 0.1.0
+date-released: 2026-11-02
+type: standard
+url: "https://github.com/proofprotocol/PP-SPEC-100-PROOFGAUNTLET"
+authors:
+  - family-names: Ellrod
+    given-names: Craig Thomas
+    orcid: "https://orcid.org/0009-0004-1058-7666"
+    affiliation: "Craig Thomas Ellrod"
+references:
+  - type: generic
+    title: "Proof Economy Prior Art Declaration"
+    doi: 10.5281/zenodo.21379780
+  - type: standard
+    title: "ProofSwarm: The Dead Canary Protocol (PP-SPEC-077)"
+    doi: 10.5281/zenodo.23347914
+  - type: standard
+    title: "Reproof: The Umpire Assay Protocol (PP-SPEC-081)"
+    doi: 10.5281/zenodo.23607722
+license: CC-BY-4.0
+license-url: "LICENSE.md"

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/proofprotocol/PP-SPEC-100-PROOFGAUNTLET/schemas/gauntlet.schema.json",
+  "title": "ProofGauntlet records and responses (PP-SPEC-100)",
+  "description": "Gate Verdict, Rating Inputs, Gauntlet Verdict, Ranking Set, and Ranking Snapshot under PP-SPEC-100. Registered records are PP-SPEC-077 Section 21 records; Record IDs are SHA-256(\"PSP-1:record\" || RFC 8785 canonical form) with signatures, endorsements, proofregister_uri, and registry_receipt excluded.",
+  "oneOf": [
+    { "$ref": "#/$defs/gate_verdict" },
+    { "$ref": "#/$defs/gauntlet_verdict" },
+    { "$ref": "#/$defs/ranking_set" },
+    { "$ref": "#/$defs/ranking_snapshot" }
+  ],
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "rubric_version": { "type": "string", "pattern": "^PGR-[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "null_reason": { "enum": ["not_in_record", "undisclosed", "not_applicable"] },
+    "locator": {
+      "type": "object",
+      "required": ["registry_id", "record_id"],
+      "properties": {
+        "registry_id": { "type": "string", "description": "Host name of the Source Registry, e.g. proofregister.com" },
+        "record_id": { "type": "string", "description": "PR-YYYY-NNNNN or a PP-SPEC-077 21.1 Record ID" }
+      },
+      "additionalProperties": false
+    },
+    "found_at": {
+      "type": "object",
+      "description": "Section 3.5: where the proof is found",
+      "required": ["locator", "registry_uri", "disclosure", "registry_profile"],
+      "properties": {
+        "locator": { "$ref": "#/$defs/locator" },
+        "registry_uri": { "type": "string", "format": "uri" },
+        "registry_receipt": { "oneOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }] },
+        "disclosure": { "enum": ["public", "holder_only", "embargoed", "sealed"] },
+        "holder": { "type": ["string", "null"] },
+        "registry_profile": { "enum": ["conforming", "non_conforming"] },
+        "disclosed_to_rater": { "type": "boolean", "default": false }
+      },
+      "additionalProperties": false
+    },
+    "check": {
+      "type": "object",
+      "required": ["id", "result"],
+      "properties": {
+        "id": { "enum": ["G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"] },
+        "result": { "enum": ["pass", "fail", "not_applicable", "unverifiable"] },
+        "reason": { "type": "string" },
+        "evidence": { "type": "array", "items": { "type": "string" }, "description": "Record IDs, URIs, pulse references, or hashes that decided the check" }
+      },
+      "additionalProperties": false
+    },
+    "gate_verdict": {
+      "type": "object",
+      "required": ["spec", "kind", "found_at", "record_kind", "as_of", "verdict", "checks"],
+      "properties": {
+        "spec": { "const": "PP-SPEC-100" },
+        "kind": { "const": "gate_verdict" },
+        "found_at": { "$ref": "#/$defs/found_at" },
+        "record_kind": { "enum": ["full", "legacy"] },
+        "as_of": { "$ref": "#/$defs/timestamp" },
+        "verdict": { "enum": ["valid", "valid_legacy", "invalid", "unverifiable"] },
+        "verdict_reason": { "type": "string", "description": "e.g. undisclosed, registry_unreachable, or the failed check" },
+        "checks": { "type": "array", "items": { "$ref": "#/$defs/check" }, "minItems": 9, "maxItems": 9 }
+      },
+      "additionalProperties": false
+    },
+    "reproof_status": {
+      "type": ["object", "null"],
+      "properties": {
+        "status": { "enum": ["disputed", "not_upheld", "divergent", "reproven", "checked_insufficient", "pending", "single"] },
+        "scope": { "enum": ["instance", "class", null] },
+        "count": { "type": "integer", "minimum": 0 },
+        "umpire_ruling": { "enum": ["head_upheld", "check_upheld", "both_within_umpire", "disputed", null] },
+        "history": {
+          "type": "object",
+          "required": ["agree", "diverge", "insufficient", "abandoned", "lapsed"],
+          "properties": {
+            "agree": { "type": "integer", "minimum": 0 },
+            "diverge": { "type": "integer", "minimum": 0 },
+            "insufficient": { "type": "integer", "minimum": 0 },
+            "abandoned": { "type": "integer", "minimum": 0 },
+            "lapsed": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "rating_inputs": {
+      "type": "object",
+      "description": "Section 7.2. Every input not established by the records is null, with its reason in null_reasons.",
+      "required": ["record_kind", "anchor_time", "historical"],
+      "properties": {
+        "record_kind": { "enum": ["full", "legacy"] },
+        "adjudicated_outcomes": { "type": ["boolean", "null"] },
+        "control_evidence_independent": { "type": ["boolean", "null"] },
+        "efficacy_rate_with_fbr": { "type": ["boolean", "null"] },
+        "gold_claims_tested": { "type": ["boolean", "null"] },
+        "novelty_share": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "qualifying_techniques": { "type": ["integer", "null"], "minimum": 0 },
+        "qualifying_tactics": { "type": ["integer", "null"], "minimum": 0 },
+        "campaign_stages": { "type": ["integer", "null"], "minimum": 0 },
+        "environment": {
+          "type": ["object", "null"],
+          "properties": {
+            "class": { "enum": ["undeclared", "production", "pre-production", "qa", "dev", "lab-replica"] },
+            "basis": { "enum": ["parity_declaration", "reference_environment", null] },
+            "any_absent": { "type": ["boolean", "null"] },
+            "mode": { "enum": ["in_situ", "independent_test_lab", "provider_run", null] },
+            "operating_mode": { "enum": ["bounded", "production_stream", null] }
+          }
+        },
+        "stream_degraded": { "type": ["boolean", "null"] },
+        "witness_record": { "type": ["boolean", "null"] },
+        "coverage_published": { "type": ["boolean", "null"] },
+        "blind_void_share": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "witness_calibration_current": { "type": ["boolean", "null"] },
+        "boundary_capture_independent": { "type": ["boolean", "null"] },
+        "party_independence": {
+          "type": ["object", "null"],
+          "properties": {
+            "provider_in_seam": { "type": "boolean" },
+            "issuer_witness_adjudicator_independent": { "type": "boolean" }
+          }
+        },
+        "reproof_status": { "$ref": "#/$defs/reproof_status" },
+        "anchor_time": { "$ref": "#/$defs/timestamp" },
+        "historical": { "type": "boolean" },
+        "null_reasons": { "type": "object", "additionalProperties": { "$ref": "#/$defs/null_reason" } },
+        "sources": { "type": "object", "description": "Input name to the field, record ID, or registry URI it was extracted from", "additionalProperties": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "dimension_result": {
+      "type": "object",
+      "required": ["level", "weight", "points", "reason"],
+      "properties": {
+        "level": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "weight": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "points": { "type": "number", "minimum": 0, "maximum": 100 },
+        "reason": { "type": "string", "description": "One line drawn from the record (Section 11.2)" },
+        "null_inputs": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "efficacy_metrics": {
+      "type": ["object", "null"],
+      "description": "Section 7.7: shown beside every rating of an efficacy record",
+      "properties": {
+        "efficacy_rate": { "type": ["number", "null"] },
+        "false_block_rate": { "type": ["number", "null"] },
+        "blind_share": { "type": ["number", "null"] },
+        "void_share": { "type": ["number", "null"] }
+      }
+    },
+    "gauntlet_verdict": {
+      "type": "object",
+      "required": ["spec", "kind", "rubric", "as_of", "gate"],
+      "properties": {
+        "spec": { "const": "PP-SPEC-100" },
+        "kind": { "const": "gauntlet_verdict" },
+        "rubric": { "$ref": "#/$defs/rubric_version" },
+        "as_of": { "$ref": "#/$defs/timestamp" },
+        "gate": { "$ref": "#/$defs/gate_verdict" },
+        "rating_inputs": { "oneOf": [{ "$ref": "#/$defs/rating_inputs" }, { "type": "null" }] },
+        "dimensions": {
+          "type": ["object", "null"],
+          "required": ["D1_tier", "D2_adversarial_depth", "D3_environment_fidelity", "D4_capture_fidelity", "D5_independence", "D6_freshness"],
+          "properties": {
+            "D1_tier": { "$ref": "#/$defs/dimension_result" },
+            "D2_adversarial_depth": { "$ref": "#/$defs/dimension_result" },
+            "D3_environment_fidelity": { "$ref": "#/$defs/dimension_result" },
+            "D4_capture_fidelity": { "$ref": "#/$defs/dimension_result" },
+            "D5_independence": { "$ref": "#/$defs/dimension_result" },
+            "D6_freshness": { "$ref": "#/$defs/dimension_result" }
+          },
+          "additionalProperties": false
+        },
+        "raw_sum": { "type": ["number", "null"] },
+        "ceilings_applied": { "type": ["array", "null"], "items": { "enum": ["K1", "K2", "K3"] } },
+        "strength_rating": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "strength_band": { "enum": ["weak", "moderate", "strong", "extremely_strong", null] },
+        "currency": { "enum": ["current", "historical", null] },
+        "efficacy_metrics": { "$ref": "#/$defs/efficacy_metrics" },
+        "reproof": { "$ref": "#/$defs/reproof_status" },
+        "rater": { "$ref": "#/$defs/rater" },
+        "envelope": { "$ref": "#/$defs/envelope" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "gate": { "properties": { "verdict": { "enum": ["invalid", "unverifiable"] } } } } },
+          "then": {
+            "description": "Section 6.3: no partial credit",
+            "properties": {
+              "rating_inputs": { "type": "null" },
+              "dimensions": { "type": "null" },
+              "raw_sum": { "type": "null" },
+              "strength_rating": { "type": "null" },
+              "strength_band": { "type": "null" }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "ranking_filter": {
+      "type": "object",
+      "required": ["profile", "as_of", "rubric"],
+      "properties": {
+        "profile": { "type": "string", "description": "PP-SPEC-077 Section 17 Technology Profile identifier" },
+        "technique": { "type": "string" },
+        "tactic": { "type": "string" },
+        "dut": { "type": "string" },
+        "environment_class": { "type": "string" },
+        "as_of": { "$ref": "#/$defs/timestamp" },
+        "rubric": { "$ref": "#/$defs/rubric_version" },
+        "registries": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "ranking_entry": {
+      "type": "object",
+      "required": ["rank", "dut", "best", "other_current_rated", "other_current_median", "invalid", "unverifiable", "revoked", "non_public"],
+      "properties": {
+        "rank": { "type": "integer", "minimum": 1 },
+        "dut": { "type": "string" },
+        "best": {
+          "type": "object",
+          "required": ["found_at", "strength_rating", "strength_band", "efficacy_metrics"],
+          "properties": {
+            "found_at": { "$ref": "#/$defs/found_at" },
+            "strength_rating": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "strength_band": { "enum": ["weak", "moderate", "strong", "extremely_strong"] },
+            "levels": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 4 } },
+            "efficacy_metrics": { "$ref": "#/$defs/efficacy_metrics" }
+          }
+        },
+        "other_current_rated": { "type": "integer", "minimum": 0 },
+        "other_current_median": { "type": ["number", "null"] },
+        "invalid": { "type": "integer", "minimum": 0 },
+        "unverifiable": { "type": "integer", "minimum": 0 },
+        "revoked": { "type": "integer", "minimum": 0 },
+        "non_public": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "ranking_set": {
+      "type": "object",
+      "required": ["spec", "kind", "filter", "label", "entries"],
+      "properties": {
+        "spec": { "const": "PP-SPEC-100" },
+        "kind": { "const": "ranking_set" },
+        "filter": { "$ref": "#/$defs/ranking_filter" },
+        "label": { "const": "Proofs ranked by strength. Not a ranking of products by quality." },
+        "entries": { "type": "array", "items": { "$ref": "#/$defs/ranking_entry" } },
+        "excluded_counts": {
+          "type": "object",
+          "properties": {
+            "historical": { "type": "integer", "minimum": 0 },
+            "non_conforming_registry": { "type": "integer", "minimum": 0 },
+            "non_public": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "next_cursor": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "ranking_snapshot": {
+      "type": "object",
+      "required": ["spec", "kind", "ranking", "rater", "envelope"],
+      "properties": {
+        "spec": { "const": "PP-SPEC-100" },
+        "kind": { "const": "ranking_snapshot" },
+        "ranking": { "$ref": "#/$defs/ranking_set" },
+        "rater": { "$ref": "#/$defs/rater" },
+        "envelope": { "$ref": "#/$defs/envelope" }
+      },
+      "additionalProperties": false
+    },
+    "rater": {
+      "type": "object",
+      "required": ["id", "disclosed_interests"],
+      "properties": {
+        "id": { "type": "string" },
+        "key": { "type": "string" },
+        "implementation": { "type": "string" },
+        "implementation_version": { "type": "string" },
+        "ai_disclosure": { "type": "string", "format": "uri", "description": "PP-SPEC-077 21.15 Authorship Disclosure of the implementation" },
+        "party_to_subject": { "type": "boolean", "default": false },
+        "disclosed_interests": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "envelope": {
+      "type": "object",
+      "description": "Present only when the response is registered as a record (Section 10)",
+      "properties": {
+        "record_id": { "$ref": "#/$defs/hash" },
+        "holder": { "type": "object", "required": ["id", "key"], "properties": { "id": { "type": "string" }, "key": { "type": "string" } } },
+        "disclosure": { "enum": ["public", "holder_only", "embargoed", "sealed"] },
+        "proofregister_uri": { "type": "string", "format": "uri" },
+        "registry_receipt": { "$ref": "#/$defs/hash" },
+        "signatures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["role", "key", "sig"],
+            "properties": {
+              "role": { "enum": ["rater", "holder", "registry", "endorser"] },
+              "key": { "type": "string" },
+              "sig": { "type": "string", "pattern": "^[0-9a-f]+$" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

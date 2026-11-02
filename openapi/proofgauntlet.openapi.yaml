@@ -1,0 +1,288 @@
+openapi: 3.1.0
+info:
+  title: ProofGauntlet API (PP-SPEC-100)
+  version: 0.1.0
+  summary: Gate and rate any proof listed in a PP-SPEC-004 registry, starting with proofregister.com.
+  description: |
+    API first (PP-SPEC-100 Section 5). Every function is available here before any user interface,
+    and every user interface is a client of this API. Reads require no authentication, sit behind no
+    bot challenge, and are callable from any origin. POST /gate and POST /rating are stateless: the
+    request body is not stored unless store=true.
+    Authored by Craig Thomas Ellrod, Proof Protocol. Specification text CC BY 4.0; no patent or trademark rights granted.
+    ProofGauntlet is a trademark of Craig Thomas Ellrod.
+  license:
+    name: CC BY 4.0 (specification text, Proof Protocol License 1.1 Part A)
+    url: https://creativecommons.org/licenses/by/4.0/
+servers:
+  - url: https://proofgauntlet.com/api/v1
+    description: Public instance
+tags:
+  - name: gate
+  - name: rating
+  - name: rankings
+  - name: rubrics
+  - name: registries
+paths:
+  /registries:
+    get:
+      tags: [registries]
+      operationId: listRegistries
+      summary: Source Registries this service resolves, with Registry Profile status (Section 4)
+      responses:
+        "200":
+          description: Registries
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [registries]
+                properties:
+                  registries:
+                    type: array
+                    items:
+                      type: object
+                      required: [registry_id, api_base, registry_profile]
+                      properties:
+                        registry_id: { type: string, examples: [proofregister.com] }
+                        api_base: { type: string, format: uri, examples: ["https://proofregister.com/api/v1"] }
+                        registry_profile: { enum: [conforming, non_conforming] }
+                        failing_requirements:
+                          type: array
+                          items: { type: string, examples: ["4.2", "4.3"] }
+        default: { $ref: "#/components/responses/Problem" }
+  /gate/{registry_id}/{record_id}:
+    get:
+      tags: [gate]
+      operationId: gateListedRecord
+      summary: Gate Verdict for a listed record (Section 6)
+      parameters:
+        - $ref: "#/components/parameters/RegistryId"
+        - $ref: "#/components/parameters/RecordId"
+        - $ref: "#/components/parameters/AsOf"
+      responses:
+        "200":
+          description: Gate Verdict, including invalid and unverifiable verdicts (6.5)
+          headers:
+            RateLimit-Limit: { $ref: "#/components/headers/RateLimitLimit" }
+            RateLimit-Remaining: { $ref: "#/components/headers/RateLimitRemaining" }
+            RateLimit-Reset: { $ref: "#/components/headers/RateLimitReset" }
+          content:
+            application/json:
+              schema: { $ref: "../schemas/gauntlet.schema.json#/$defs/gate_verdict" }
+        default: { $ref: "#/components/responses/Problem" }
+  /gate:
+    post:
+      tags: [gate]
+      operationId: gateSuppliedRecord
+      summary: Gate Verdict for a record supplied in the body (stateless, 5.5)
+      parameters:
+        - $ref: "#/components/parameters/Store"
+        - $ref: "#/components/parameters/AsOf"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [record]
+              properties:
+                record: { type: object, description: "A PP-SPEC-077 Section 21 record or a PP-SPEC-004 ProofRecord" }
+                registry_id: { type: string }
+                registry_receipt: { type: string }
+      responses:
+        "200":
+          description: Gate Verdict
+          content:
+            application/json:
+              schema: { $ref: "../schemas/gauntlet.schema.json#/$defs/gate_verdict" }
+        default: { $ref: "#/components/responses/Problem" }
+  /rating/{registry_id}/{record_id}:
+    get:
+      tags: [rating]
+      operationId: rateListedRecord
+      summary: Gauntlet Verdict (Gate plus Strength Rating) for a listed record (Sections 7, 8)
+      parameters:
+        - $ref: "#/components/parameters/RegistryId"
+        - $ref: "#/components/parameters/RecordId"
+        - $ref: "#/components/parameters/AsOf"
+        - $ref: "#/components/parameters/Rubric"
+      responses:
+        "200":
+          description: Gauntlet Verdict. strength_rating is null when the Gate did not pass (6.3).
+          headers:
+            RateLimit-Limit: { $ref: "#/components/headers/RateLimitLimit" }
+            RateLimit-Remaining: { $ref: "#/components/headers/RateLimitRemaining" }
+            RateLimit-Reset: { $ref: "#/components/headers/RateLimitReset" }
+          content:
+            application/json:
+              schema: { $ref: "../schemas/gauntlet.schema.json#/$defs/gauntlet_verdict" }
+        default: { $ref: "#/components/responses/Problem" }
+  /rating:
+    post:
+      tags: [rating]
+      operationId: rateSuppliedRecord
+      summary: Gauntlet Verdict for a supplied record, or a Strength Rating for supplied Rating Inputs (stateless, 5.5)
+      parameters:
+        - $ref: "#/components/parameters/Store"
+        - $ref: "#/components/parameters/AsOf"
+        - $ref: "#/components/parameters/Rubric"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required: [record]
+                  properties:
+                    record: { type: object }
+                    registry_id: { type: string }
+                - type: object
+                  required: [rating_inputs, gate_verdict]
+                  properties:
+                    rating_inputs: { $ref: "../schemas/gauntlet.schema.json#/$defs/rating_inputs" }
+                    gate_verdict: { enum: [valid, valid_legacy] }
+      responses:
+        "200":
+          description: Gauntlet Verdict
+          content:
+            application/json:
+              schema: { $ref: "../schemas/gauntlet.schema.json#/$defs/gauntlet_verdict" }
+        default: { $ref: "#/components/responses/Problem" }
+  /rankings:
+    get:
+      tags: [rankings]
+      operationId: getRankingSet
+      summary: Ranking Set for a declared filter (Section 9)
+      parameters:
+        - { name: profile, in: query, required: true, schema: { type: string }, description: "PP-SPEC-077 Section 17 Technology Profile" }
+        - { name: technique, in: query, schema: { type: string } }
+        - { name: tactic, in: query, schema: { type: string } }
+        - { name: dut, in: query, schema: { type: string } }
+        - { name: environment_class, in: query, schema: { type: string } }
+        - $ref: "#/components/parameters/AsOf"
+        - $ref: "#/components/parameters/Rubric"
+        - { name: cursor, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Ranking Set with selection disclosure (9.3)
+          headers:
+            RateLimit-Limit: { $ref: "#/components/headers/RateLimitLimit" }
+            RateLimit-Remaining: { $ref: "#/components/headers/RateLimitRemaining" }
+            RateLimit-Reset: { $ref: "#/components/headers/RateLimitReset" }
+          content:
+            application/json:
+              schema: { $ref: "../schemas/gauntlet.schema.json#/$defs/ranking_set" }
+        default: { $ref: "#/components/responses/Problem" }
+  /rubrics:
+    get:
+      tags: [rubrics]
+      operationId: listRubrics
+      summary: Every published Rubric version (7.9)
+      responses:
+        "200":
+          description: Rubric versions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rubrics]
+                properties:
+                  rubrics:
+                    type: array
+                    items:
+                      type: object
+                      required: [version, published, sha256]
+                      properties:
+                        version: { type: string, examples: [PGR-0.1.0] }
+                        published: { type: string, format: date }
+                        sha256: { type: string, pattern: "^[0-9a-f]{64}$" }
+        default: { $ref: "#/components/responses/Problem" }
+  /rubrics/{version}:
+    get:
+      tags: [rubrics]
+      operationId: getRubric
+      summary: One Rubric, byte for byte the published data file
+      parameters:
+        - { name: version, in: path, required: true, schema: { type: string, pattern: "^PGR-[0-9]+\\.[0-9]+\\.[0-9]+$" } }
+      responses:
+        "200":
+          description: Rubric data file
+          content:
+            application/json:
+              schema: { type: object }
+        default: { $ref: "#/components/responses/Problem" }
+  /ratings/{rating_record_id}:
+    get:
+      tags: [rating]
+      operationId: getRatingRecord
+      summary: A registered Gauntlet Verdict Record or Ranking Snapshot (Section 10)
+      parameters:
+        - { name: rating_record_id, in: path, required: true, schema: { type: string, pattern: "^[0-9a-f]{64}$" } }
+      responses:
+        "200":
+          description: Registered record
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { $ref: "../schemas/gauntlet.schema.json#/$defs/gauntlet_verdict" }
+                  - { $ref: "../schemas/gauntlet.schema.json#/$defs/ranking_snapshot" }
+        default: { $ref: "#/components/responses/Problem" }
+  /openapi.json:
+    get:
+      operationId: getOpenApi
+      summary: This description, as JSON
+      responses:
+        "200":
+          description: OpenAPI 3.1 document
+          content:
+            application/json:
+              schema: { type: object }
+components:
+  parameters:
+    RegistryId:
+      name: registry_id
+      in: path
+      required: true
+      schema: { type: string, examples: [proofregister.com] }
+    RecordId:
+      name: record_id
+      in: path
+      required: true
+      schema: { type: string, examples: [PR-2026-00001] }
+    AsOf:
+      name: as_of
+      in: query
+      required: false
+      description: RFC 3339 instant; defaults to the time of the request
+      schema: { type: string, format: date-time }
+    Rubric:
+      name: rubric
+      in: query
+      required: false
+      description: Rubric version; defaults to the latest published
+      schema: { type: string, pattern: "^PGR-[0-9]+\\.[0-9]+\\.[0-9]+$" }
+    Store:
+      name: store
+      in: query
+      required: false
+      description: When false (default) the request body is not stored, logged, indexed, or forwarded (5.5)
+      schema: { type: boolean, default: false }
+  headers:
+    RateLimitLimit: { description: Requests allowed in the window, schema: { type: integer } }
+    RateLimitRemaining: { description: Requests remaining in the window, schema: { type: integer } }
+    RateLimitReset: { description: Seconds until the window resets, schema: { type: integer } }
+  responses:
+    Problem:
+      description: RFC 9457 problem details. An unreachable Source Registry is not an error here; it is Gate Verdict unverifiable (5.6).
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              type: { type: string, format: uri }
+              title: { type: string }
+              status: { type: integer }
+              detail: { type: string }
+              instance: { type: string }
