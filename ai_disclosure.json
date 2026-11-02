@@ -21,7 +21,7 @@
     "conception_and_normative_decisions": {
       "human": 50,
       "ai": 50,
-      "note": "The product concept, its scope and API first are the author's. The Gate checks, Dimensions, thresholds, Weights, Ceilings, Bands and ranking rules were proposed by the AI and are adopted only on the author's acceptance."
+      "note": "The product concept, its scope and API first are the author's. The Gate checks, Dimensions, thresholds, Weights, Ceilings, Bands and ranking rules were proposed by the AI and were accepted by the author on 2026-11-02."
     },
     "design_and_naming": {
       "human": 25,
@@ -39,7 +39,7 @@
   },
   "method": {
     "kind": "self_estimated",
-    "notes": "Shares drafted by the AI from its record of what it proposed and what the author directed, for the author to confirm or correct before release. MAY be re-measured with a tool such as ProofJack.com."
+    "notes": "Shares drafted by the AI from its record of what it proposed and what the author directed, confirmed by the author on 2026-11-02. MAY be re-measured with a tool such as ProofJack.com."
   },
   "contributions": {
     "human": [
