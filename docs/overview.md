@@ -27,6 +27,31 @@ Each question gets a Level from 0 to 4, decided by facts the record already cont
 
 The score lands in a band: `weak` (0 to 39), `moderate` (40 to 69), `strong` (70 to 89), or `extremely_strong` (90 to 100).
 
+## The flow
+
+```mermaid
+flowchart TD
+  R["Any record listed in a PP-SPEC-004 registry<br/>proofregister.com first"] -->|"resolved by Locator,<br/>public API only"| G{"THE GATE<br/>G1 to G9"}
+  G -->|"any check fails"| X["invalid<br/>no score, reason shown"]
+  G -->|"a check cannot run"| U["unverifiable<br/>no score, reason shown"]
+  G -->|"full record, all pass"| V["valid"]
+  G -->|"PP-SPEC-004 fields only"| L["valid_legacy"]
+  V --> S
+  L --> S
+  subgraph S ["STRENGTH RATING, rubric PGR-0.1.0"]
+    direction LR
+    D1["D1 Tier 25"]
+    D2["D2 Adversarial Depth 20"]
+    D3["D3 Environment Fidelity 15"]
+    D4["D4 Capture Fidelity 15"]
+    D5["D5 Independence 15"]
+    D6["D6 Freshness 10"]
+  end
+  S -->|"Levels 0 to 4,<br/>unknown is zero"| K["Ceilings<br/>K1 no efficacy: 40<br/>K2 reproof diverged: 50<br/>K3 legacy: 40"]
+  K --> B["0 to 100<br/>weak | moderate | strong | extremely_strong<br/>efficacy shown beside it"]
+  B --> RK["RANKINGS<br/>every public record, best per DUT,<br/>the rest shown beside it"]
+```
+
 ## What makes it different
 
 - **No opinion.** The rubric is a published data file. Anyone can recompute any score and get the same number.
